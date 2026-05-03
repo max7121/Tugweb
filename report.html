@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拔河機全球年度銷售策略建議書</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--primary:#1b3a57;--accent:#2e7dce;--accent2:#e67e22;--bg:#f0f4f8;--card:#ffffff;--text:#2c3e50;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+    nav{position:sticky;top:0;z-index:1000;background:var(--primary);box-shadow:0 2px 12px rgba(0,0,0,.35);display:flex;align-items:center;padding:0 24px;gap:4px;overflow-x:auto;}
+    nav a{color:#cdd8e3;text-decoration:none;font-size:13px;white-space:nowrap;padding:14px 12px;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;}
+    nav a:hover{color:#fff;border-bottom-color:var(--accent2);}
+    header{background:linear-gradient(135deg,#0d2136 0%,#1b3a57 50%,#2e5d87 100%);color:#fff;padding:72px 24px 56px;text-align:center;position:relative;overflow:hidden;}
+    header h1{font-size:clamp(22px,4vw,40px);letter-spacing:3px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+    header p{margin-top:12px;font-size:15px;color:#a8c4dc;letter-spacing:1px;}
+    .kpi-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:1000px;margin:-36px auto 0;padding:0 24px;position:relative;z-index:10;}
+    .kpi-card{background:var(--card);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.12);padding:24px 32px;text-align:center;flex:1 1 160px;min-width:160px;border-top:4px solid var(--accent);transition:transform .2s;}
+    .kpi-card:hover{transform:translateY(-4px);}
+    .kpi-card.warn{border-top-color:var(--accent2);}
+    .kpi-card.success{border-top-color:#27ae60;}
+    .kpi-num{font-size:36px;font-weight:800;color:var(--primary);line-height:1;}
+    .kpi-label{font-size:13px;color:#7f8c9a;margin-top:6px;}
+    .container{max-width:1000px;margin:40px auto 60px;padding:0 24px;}
+    .section-title{display:flex;align-items:center;gap:12px;margin:52px 0 20px;}
+    .section-title .num{background:var(--primary);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+    .section-title h2{font-size:clamp(16px,2.5vw,22px);color:var(--primary);font-weight:700;}
+    .card{background:var(--card);border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:24px 28px;margin-bottom:24px;}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:14px;}
+    thead th{background:var(--primary);color:#fff;padding:10px 12px;text-align:center;white-space:nowrap;}
+    tbody td{border:1px solid #dde3ea;padding:9px 12px;text-align:center;}
+    tbody tr:nth-child(even) td{background:#f7f9fb;}
+    tbody tr:hover td{background:#eaf3ff;}
+    tfoot th{background:#2e5d87;color:#fff;padding:10px 12px;text-align:center;}
+    .chart-row{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:24px;}
+    .chart-box{background:var(--card);border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:24px;flex:1 1 300px;}
+    .chart-box h3{font-size:15px;color:var(--primary);margin-bottom:16px;text-align:center;}
+    .chart-box canvas{width:100%!important;}
+    #map{height:480px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+    .strategy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+    .strategy-card{background:var(--card);border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px;border-left:4px solid var(--accent);}
+    .strategy-card h4{font-size:15px;color:var(--primary);margin-bottom:8px;}
+    .strategy-card p{font-size:13px;color:#5d6d7e;}
+    .action-list{list-style:none;}
+    .action-list li{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid #eaecef;}
+    .action-list li:last-child{border-bottom:none;}
+    .action-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:7px;}
+    .action-dot.warn{background:var(--accent2);}
+    strong{color:var(--primary);}
+    footer{background:var(--primary);color:#8aaec8;text-align:center;padding:24px;font-size:13px;}
+    .progress-wrap{display:flex;align-items:center;gap:10px;margin:6px 0;}
+    .progress-label{width:60px;font-size:12px;text-align:right;flex-shrink:0;}
+    .progress-bar-bg{flex:1;background:#e0e8f0;border-radius:99px;height:14px;overflow:hidden;}
+    .progress-bar{height:100%;background:var(--accent);border-radius:99px;transition:width 1.2s ease;width:0%;}
+    .progress-val{width:48px;font-size:12px;color:var(--primary);font-weight:600;}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="#overview">戰略目標</a>
+  <a href="#regions">區域明細</a>
+  <a href="#north-america">北美</a>
+  <a href="#asia-pacific">亞太</a>
+  <a href="#europe-latam">歐洲/南美</a>
+  <a href="#quarterly">季度節奏</a>
+  <a href="#map-section">全球地圖</a>
+  <a href="#action">行動方案</a>
+</nav>
+
+<header>
+  <h1>拔河機全球年度銷售策略建議書</h1>
+  <p>Global Annual Sales Strategy Report &nbsp;|&nbsp; 2025–2026</p>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-num" data-target="765">0</div>
+    <div class="kpi-label">保守目標（台）</div>
+  </div>
+  <div class="kpi-card warn">
+    <div class="kpi-num" data-target="815">0</div>
+    <div class="kpi-label">年度目標（台）</div>
+  </div>
+  <div class="kpi-card success">
+    <div class="kpi-num" data-target="865">0</div>
+    <div class="kpi-label">挑戰目標（台）</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-num" data-target="12" data-suffix=".4%">0</div>
+    <div class="kpi-label">成長率</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-num" data-target="11">0</div>
+    <div class="kpi-label">覆蓋市場數</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div id="overview" class="section-title"><div class="num">1</div><h2>年度銷售戰略目標與總覽</h2></div>
+  <div class="card">
+    <p>為達成全球化佈局，本年度將全球銷售目標從 <strong>725 台</strong> 上修至 <strong>815 台</strong>，成長率達 <strong>12.4%</strong>。此增長動能主要來自重新定位歐洲市場潛力，由 <strong>10 台</strong> 大幅調升至 <strong>100 台</strong>。為精準管控營運風險並激勵團隊潛能，銷售管理部制定三層級 KPI：</p>
+  </div>
+  <div class="table-wrap card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead><tr><th>統計維度</th><th>銷售台數</th><th>戰略意義</th></tr></thead>
+      <tbody>
+        <tr><td>保守總量</td><td><strong>765 台</strong></td><td>確保基本利潤與核心營運現金流，防禦市場波動</td></tr>
+        <tr><td>目標總量</td><td><strong>815 台</strong></td><td>年度核心執行標準，展現品牌全球化擴張意圖</td></tr>
+        <tr><td>挑戰總量</td><td><strong>865 台</strong></td><td>針對高潛力市場（美、中）進行上限衝刺，擴大市場佔有率</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="regions" class="section-title"><div class="num">2</div><h2>全球區域市場目標明細分析</h2></div>
+  <div class="card">
+    <p>全球 815 台目標依各市場成熟度與開發潛力分配如下。核心策略採取「美國領頭、中國調節、日本標竿、歐洲補強」的協作架構：</p>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>各區域年度 KPI 佔比</h3>
+      <canvas id="pieChart" height="280"></canvas>
+    </div>
+    <div class="chart-box" style="flex:1.4 1 320px;">
+      <h3>各區域銷售量佔比</h3>
+      <div id="progressBars"></div>
+    </div>
+  </div>
+  <div class="table-wrap card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead><tr><th>區域</th><th>主要市場</th><th>年度 KPI</th><th>核心策略定位</th></tr></thead>
+      <tbody>
+        <tr><td>美國</td><td>美國本土</td><td>200 台</td><td>全球最大主力市場，售後體系標竿</td></tr>
+        <tr><td>中國</td><td>華中 / 華東一帶</td><td>150 台</td><td>最大彈性調節市場（100–200 台變動區間）</td></tr>
+        <tr><td>日本</td><td>關東 / 中部 / 關西</td><td>100 台</td><td>高品質要求市場，構築亞洲戰略護城河</td></tr>
+        <tr><td>澳洲</td><td>全區</td><td>100 台</td><td>獨立大型市場，深耕連鎖娛樂通路</td></tr>
+        <tr><td>歐洲</td><td>捷克 / 斯洛伐克等</td><td>100 台</td><td>戰略突破點，聚焦合規經營與區域代理</td></tr>
+        <tr><td>加拿大</td><td>全國</td><td>50 台</td><td>北美協同市場，資源共享以降本增效</td></tr>
+        <tr><td>東南亞</td><td>泰國為主</td><td>30 台</td><td>測試型市場，以展會切入建立品牌認知</td></tr>
+        <tr><td>韓國</td><td>首爾及主要城市</td><td>30 台</td><td>東北亞協同區，與日本市場同步推進</td></tr>
+        <tr><td>南美洲</td><td>巴西為主</td><td>30 台</td><td>特色通路滲透，鎖定大型娛樂場商場</td></tr>
+        <tr><td>墨西哥</td><td>墨西哥</td><td>20 台</td><td>北美延伸市場，強化區域供應鏈聯動</td></tr>
+        <tr><td>印度</td><td>印度中西部</td><td>5 台</td><td>初期樣板市場，聚焦市場資訊採集</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="north-america" class="section-title"><div class="num">3</div><h2>北美市場：建立「軸心輻射式」服務體系</h2></div>
+  <div class="strategy-grid">
+    <div class="strategy-card"><h4>🇺🇸 美國（Hub）</h4><p>建立一級代理體系與售後樞紐，年度目標 200 台，為全球最大主力市場。</p></div>
+    <div class="strategy-card"><h4>🇨🇦 加拿大（Spoke）</h4><p>共享美國售後人力與備品庫存，目標 50 台，降低市場進入成本。</p></div>
+    <div class="strategy-card"><h4>🇲🇽 墨西哥（Spoke）</h4><p>北美供應鏈聯動延伸，目標 20 台，縮短市場進入週期。</p></div>
+    <div class="strategy-card" style="border-left-color:#27ae60;"><h4>📦 北美合計</h4><p>三市場共 <strong>270 台</strong>，佔年度目標 <strong>33.1%</strong>，為最大單一區塊。</p></div>
+  </div>
+
+  <div id="asia-pacific" class="section-title"><div class="num">4</div><h2>亞太市場：品質護城河與多樣化通路佈局</h2></div>
+  <div class="strategy-grid">
+    <div class="strategy-card"><h4>🇯🇵 日本</h4><p>建立「亞洲標竿展示點」，以高品質要求市場樹立品牌護城河，目標 100 台。</p></div>
+    <div class="strategy-card"><h4>🇰🇷 韓國</h4><p>與日本共享營銷資源，提升跨國協同效率，目標 30 台。</p></div>
+    <div class="strategy-card"><h4>🇦🇺 澳洲</h4><p>聚焦連鎖娛樂通路擴大規模，目標 100 台。</p></div>
+    <div class="strategy-card"><h4>🇹🇭 東南亞</h4><p>泰國展會策略測試市場並甄選優質合作夥伴，目標 30 台。</p></div>
+    <div class="strategy-card"><h4>🇨🇳 中國</h4><p>最大彈性調節市場，區間 100–200 台，以 150 台為年度核心目標。</p></div>
+  </div>
+
+  <div id="europe-latam" class="section-title"><div class="num">5</div><h2>歐洲與南美市場：合規經營與特定通路滲透</h2></div>
+  <div class="strategy-grid">
+    <div class="strategy-card" style="border-left-color:var(--accent2);"><h4>🇪🇺 歐洲</h4><p>目標上調至 100 台，需完成 CE 認證，建立跨國物流鏈確保合法高效運營。</p></div>
+    <div class="strategy-card" style="border-left-color:var(--accent2);"><h4>🇧🇷 南美洲（巴西）</h4><p>鎖定大型娛樂場與高端購物中心，避開一般零售渠道，目標 30 台。</p></div>
+    <div class="strategy-card" style="border-left-color:var(--accent2);"><h4>🇮🇳 印度</h4><p>初期僅 5 台樣板，重點在市場資訊採集與技術反饋，非短期獲利。</p></div>
+  </div>
+
+  <div id="quarterly" class="section-title"><div class="num">6</div><h2>季度推進節奏與年度營運分配</h2></div>
+  <div class="card">
+    <p>採「初期佈局、後期衝刺」模式。注意 Q4 銷售佔比達 <strong>37%</strong>，供應鏈須在 Q3 前完成備貨和物流佈署，避免長鞭效應造成供應中斷。</p>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box" style="flex:2 1 420px;">
+      <h3>各區域季度銷售計畫（堆疊柱狀圖）</h3>
+      <canvas id="barChart" height="220"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Q1–Q4 季度合計趨勢</h3>
+      <canvas id="lineChart" height="220"></canvas>
+    </div>
+  </div>
+  <div class="table-wrap card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead><tr><th>區域</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>年度合計</th></tr></thead>
+      <tbody>
+        <tr><td>美國</td><td>30</td><td>45</td><td>55</td><td>70</td><td><strong>200</strong></td></tr>
+        <tr><td>中國</td><td>20</td><td>30</td><td>40</td><td>60</td><td><strong>150</strong></td></tr>
+        <tr><td>日本</td><td>10</td><td>20</td><td>30</td><td>40</td><td><strong>100</strong></td></tr>
+        <tr><td>澳洲</td><td>10</td><td>20</td><td>30</td><td>40</td><td><strong>100</strong></td></tr>
+        <tr><td>歐洲</td><td>10</td><td>20</td><td>30</td><td>40</td><td><strong>100</strong></td></tr>
+        <tr><td>加拿大</td><td>5</td><td>10</td><td>15</td><td>20</td><td><strong>50</strong></td></tr>
+        <tr><td>東南亞</td><td>3</td><td>7</td><td>10</td><td>10</td><td><strong>30</strong></td></tr>
+        <tr><td>韓國</td><td>3</td><td>7</td><td>10</td><td>10</td><td><strong>30</strong></td></tr>
+        <tr><td>南美洲</td><td>3</td><td>7</td><td>10</td><td>10</td><td><strong>30</strong></td></tr>
+        <tr><td>墨西哥</td><td>2</td><td>4</td><td>6</td><td>8</td><td><strong>20</strong></td></tr>
+        <tr><td>印度</td><td>0</td><td>1</td><td>2</td><td>2</td><td><strong>5</strong></td></tr>
+      </tbody>
+      <tfoot><tr><th>單季合計</th><th>96</th><th>171</th><th>238</th><th>310</th><th>815</th></tr></tfoot>
+    </table>
+  </div>
+
+  <div id="map-section" class="section-title"><div class="num">7</div><h2>全球目標分佈互動地圖</h2></div>
+  <div class="card"><p>點擊地圖標記可查看各市場詳細資訊與年度 KPI 目標。地圖支援縮放與拖曳。</p></div>
+  <div id="map"></div>
+
+  <div id="action" class="section-title"><div class="num">8</div><h2>管理建議與後續行動方案</h2></div>
+  <div class="card">
+    <p>達成 815 台目標需要跨部門聯合作戰：</p>
+    <ul class="action-list" style="margin-top:16px;">
+      <li><div class="action-dot"></div><div><strong>營運部：</strong>立即啟動美國售後中心選址，確保 Q2 可支援加、墨市場。</div></li>
+      <li><div class="action-dot"></div><div><strong>行銷部：</strong>於 Q1 結束前完成日本標竿展示點的設計，提升品牌溢價。</div></li>
+      <li><div class="action-dot"></div><div><strong>研發與法務部：</strong>45 天內完成歐洲 CE 認證與物流路徑合規覆核。</div></li>
+      <li><div class="action-dot warn"></div><div><strong>風險提示：</strong>對於印度等小量市場，重點在市場資訊採集與技術反饋而非短期獲利。</div></li>
+      <li><div class="action-dot warn"></div><div><strong>供應鏈：</strong>Q3 前完成備貨與物流佈署，防範 Q4 長鞭效應，確保交貨率 ≥ 95%。</div></li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>&copy; 2025–2026 &nbsp;|&nbsp; 拔河機全球銷售策略建議書 &nbsp;|&nbsp; 僅供內部使用</footer>
+
+<script>
+  /* 計數動畫 */
+  function animateCounter(el){
+    const target=+el.dataset.target, suffix=el.dataset.suffix||'';
+    let start=0;
+    const step=ts=>{
+      if(!start)start=ts;
+      const p=Math.min((ts-start)/1400,1), e=1-Math.pow(1-p,3);
+      el.textContent=Math.floor(e*target)+suffix;
+      if(p<1)requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  const cObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){animateCounter(e.target);cObs.unobserve(e.target);}});
+  },{threshold:0.5});
+  document.querySelectorAll('.kpi-num[data-target]').forEach(el=>cObs.observe(el));
+
+  /* 進度條 */
+  const regionData=[
+    {name:'美國',val:200},{name:'中國',val:150},{name:'日本',val:100},
+    {name:'澳洲',val:100},{name:'歐洲',val:100},{name:'加拿大',val:50},
+    {name:'東南亞',val:30},{name:'韓國',val:30},{name:'南美洲',val:30},
+    {name:'墨西哥',val:20},{name:'印度',val:5}
+  ];
+  const pbc=document.getElementById('progressBars');
+  regionData.forEach(r=>{
+    pbc.innerHTML+=`<div class="progress-wrap"><span class="progress-label">${r.name}</span><div class="progress-bar-bg"><div class="progress-bar" data-w="${(r.val/200*100).toFixed(1)}%"></div></div><span class="progress-val">${r.val} 台</span></div>`;
+  });
+  const pbObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){document.querySelectorAll('.progress-bar').forEach(b=>b.style.width=b.dataset.w);pbObs.disconnect();}});
+  },{threshold:0.3});
+  pbObs.observe(pbc);
+
+  /* 圓餅圖 */
+  new Chart(document.getElementById('pieChart'),{
+    type:'doughnut',
+    data:{
+      labels:regionData.map(r=>r.name),
+      datasets:[{data:regionData.map(r=>r.val),
+        backgroundColor:['#1b3a57','#2e7dce','#27ae60','#e67e22','#8e44ad','#2980b9','#16a085','#c0392b','#d35400','#7f8c8d','#bdc3c7'],
+        borderWidth:2,borderColor:'#fff'}]
+    },
+    options:{plugins:{legend:{position:'right',labels:{font:{size:11}}}},cutout:'55%'}
+  });
+
+  /* 柱狀圖 */
+  const qData=[
+    {label:'美國',data:[30,45,55,70]},{label:'中國',data:[20,30,40,60]},
+    {label:'日本',data:[10,20,30,40]},{label:'澳洲',data:[10,20,30,40]},
+    {label:'歐洲',data:[10,20,30,40]},{label:'加拿大',data:[5,10,15,20]},
+    {label:'東南亞',data:[3,7,10,10]},{label:'韓國',data:[3,7,10,10]},
+    {label:'南美洲',data:[3,7,10,10]},{label:'墨西哥',data:[2,4,6,8]},
+    {label:'印度',data:[0,1,2,2]}
+  ];
+  const bColors=['#1b3a57','#2e7dce','#27ae60','#e67e22','#8e44ad','#2980b9','#16a085','#c0392b','#d35400','#7f8c8d','#bdc3c7'];
+  new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels:['Q1','Q2','Q3','Q4'],datasets:qData.map((d,i)=>({label:d.label,data:d.data,backgroundColor:bColors[i],stack:'total'}))},
+    options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'台'}}}}
+  });
+
+  /* 折線圖 */
+  new Chart(document.getElementById('lineChart'),{
+    type:'line',
+    data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'季度合計',data:[96,171,238,310],borderColor:'#2e7dce',backgroundColor:'rgba(46,125,206,.12)',borderWidth:3,pointRadius:6,pointBackgroundColor:'#2e7dce',fill:true,tension:0.35}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{title:{display:true,text:'台'},beginAtZero:true}}}
+  });
+
+  /* Leaflet 互動地圖 */
+  const map=L.map('map',{scrollWheelZoom:false}).setView([25,20],2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:6
+  }).addTo(map);
+  const mkStyle=kpi=>{
+    const s=Math.max(32,Math.min(64,26+kpi/5));
+    return L.divIcon({className:'',html:`<div style="width:${s}px;height:${s}px;border-radius:50%;background:rgba(27,58,87,.9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:${kpi>=100?13:12}px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;">${kpi}</div>`,iconSize:[s,s],iconAnchor:[s/2,s/2]});
+  };
+  [
+    {name:'美國',kpi:200,lat:37.1,lng:-95.7,desc:'全球最大主力市場，售後體系標竿'},
+    {name:'加拿大',kpi:50,lat:56.1,lng:-106.3,desc:'北美協同市場，資源共享以降本增效'},
+    {name:'墨西哥',kpi:20,lat:23.6,lng:-102.6,desc:'北美延伸市場，強化區域供應鏈聯動'},
+    {name:'南美洲',kpi:30,lat:-10.2,lng:-51.9,desc:'特色通路滲透，鎖定大型娛樂場商場（巴西）'},
+    {name:'歐洲',kpi:100,lat:49.8,lng:15.5,desc:'戰略突破點，聚焦合規經營與區域代理（捷克/斯洛伐克）'},
+    {name:'印度',kpi:5,lat:20.6,lng:78.9,desc:'初期樣板市場，聚焦市場資訊採集'},
+    {name:'中國',kpi:150,lat:34.2,lng:109.0,desc:'最大彈性調節市場（100–200 台）'},
+    {name:'韓國',kpi:30,lat:35.9,lng:127.8,desc:'東北亞協同區，與日本市場同步推進'},
+    {name:'日本',kpi:100,lat:37.0,lng:137.0,desc:'高品質要求市場，構築亞洲戰略護城河'},
+    {name:'東南亞',kpi:30,lat:15.9,lng:100.9,desc:'測試型市場，以展會切入建立品牌認知（泰國）'},
+    {name:'澳洲',kpi:100,lat:-25.3,lng:133.8,desc:'獨立大型市場，深耕連鎖娛樂通路'},
+  ].forEach(m=>L.marker([m.lat,m.lng],{icon:mkStyle(m.kpi)}).addTo(map).bindPopup(`<b>${m.name}</b><br>年度 KPI：<b>${m.kpi} 台</b><br><small>${m.desc}</small>`,{maxWidth:220}));
+</script>
+</body>
+</html>
