@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root{--primary:#1b3a57;--accent:#2e7dce;--accent2:#e67e22;--bg:#f0f4f8;--card:#ffffff;--text:#2c3e50;}
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -57,10 +58,153 @@
     .progress-bar-bg{flex:1;background:#e0e8f0;border-radius:99px;height:14px;overflow:hidden;}
     .progress-bar{height:100%;background:var(--accent);border-radius:99px;transition:width 1.2s ease;width:0%;}
     .progress-val{width:48px;font-size:12px;color:var(--primary);font-weight:600;}
+
+    /* PDF 匯出按鈕 */
+    #pdfBtn{
+      position:fixed;bottom:28px;right:28px;z-index:2000;
+      background:var(--primary);color:#fff;
+      border:none;border-radius:50px;
+      padding:13px 22px;font-size:14px;font-weight:600;
+      cursor:pointer;display:flex;align-items:center;gap:8px;
+      box-shadow:0 4px 18px rgba(0,0,0,.3);
+      transition:background .2s,transform .15s;
+    }
+    #pdfBtn:hover{background:#2e7dce;transform:translateY(-2px);}
+    #pdfBtn:active{transform:scale(.97);}
+    #pdfBtn svg{width:18px;height:18px;fill:currentColor;flex-shrink:0;}
+    #pdfOverlay{
+      display:none;position:fixed;inset:0;z-index:9999;
+      background:rgba(27,58,87,.82);color:#fff;
+      flex-direction:column;align-items:center;justify-content:center;gap:16px;
+      font-size:18px;font-weight:600;
+    }
+    #pdfOverlay.show{display:flex;}
+    .pdf-spinner{
+      width:44px;height:44px;
+      border:4px solid rgba(255,255,255,.3);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* 列印 / PDF 版面 */
+    @media print{
+      nav,#pdfBtn,#pdfOverlay{display:none!important;}
+      body{background:#fff;}
+      .kpi-row{margin-top:24px;}
+      .kpi-card{box-shadow:none;border:1px solid #dde3ea;}
+      .card,.chart-box,.strategy-card{box-shadow:none;border:1px solid #eaecef;}
+      .section-title{margin-top:28px;}
+      #map{display:none;}
+      #map-placeholder{display:block!important;}
+      .chart-row{flex-wrap:wrap;}
+      page-break-inside:avoid;
+    }
+    #map-placeholder{
+      display:none;
+      background:#e8eff6;
+      border-radius:10px;
+      padding:40px;
+      text-align:center;
+      color:var(--primary);
+      font-size:15px;
+      border:2px dashed #b0c4d8;
+    }
+
+    /* 產品簡介 */
+    .product-section{
+      background:var(--card);
+      max-width:1000px;
+      margin:40px auto 0;
+      border-radius:14px;
+      box-shadow:0 4px 24px rgba(0,0,0,.1);
+      overflow:hidden;
+      display:flex;
+      flex-wrap:wrap;
+    }
+    .product-img-wrap{
+      flex:0 0 340px;
+      max-width:340px;
+      background:#0d2136;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .product-img-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center top;
+      display:block;
+      min-height:420px;
+    }
+    .product-info{
+      flex:1 1 300px;
+      padding:40px 36px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:16px;
+    }
+    .product-tag{
+      display:inline-block;
+      background:var(--accent);
+      color:#fff;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:2px;
+      padding:4px 12px;
+      border-radius:20px;
+      text-transform:uppercase;
+      width:fit-content;
+    }
+    .product-info h2{
+      font-size:clamp(20px,3vw,30px);
+      color:var(--primary);
+      font-weight:800;
+      line-height:1.3;
+    }
+    .product-info p{
+      font-size:14px;
+      color:#5d6d7e;
+      line-height:1.8;
+    }
+    .product-specs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:4px;
+    }
+    .spec-item{
+      background:#f0f4f8;
+      border-radius:8px;
+      padding:10px 16px;
+      font-size:12px;
+      color:var(--primary);
+      font-weight:600;
+      border-left:3px solid var(--accent);
+    }
+    .spec-item span{
+      display:block;
+      font-weight:400;
+      color:#7f8c9a;
+      margin-top:2px;
+    }
+    @media(max-width:680px){
+      .product-img-wrap{flex:0 0 100%;max-width:100%;}
+      .product-img-wrap img{min-height:280px;object-position:center 20%;}
+    }
+    @media print{
+      .product-section{break-inside:avoid;}
+      .product-img-wrap img{min-height:300px;}
+    }
   </style>
 </head>
 <body>
 <nav>
+  <a href="#product">產品簡介</a>
   <a href="#overview">戰略目標</a>
   <a href="#regions">區域明細</a>
   <a href="#north-america">北美</a>
@@ -69,12 +213,35 @@
   <a href="#quarterly">季度節奏</a>
   <a href="#map-section">全球地圖</a>
   <a href="#action">行動方案</a>
+  <a href="#" onclick="exportPDF();return false;" style="margin-left:auto;background:var(--accent2);color:#fff;border-radius:20px;padding:8px 16px;border-bottom:none;">⬇ 匯出 PDF</a>
 </nav>
 
 <header>
   <h1>拔河機全球年度銷售策略建議書</h1>
   <p>Global Annual Sales Strategy Report &nbsp;|&nbsp; 2025–2026</p>
 </header>
+
+<!-- 產品簡介 -->
+<section class="product-section" style="padding:0 24px;" id="product">
+  <div class="product-section" style="padding:0;">
+    <div class="product-img-wrap">
+      <img src="product.jpg" alt="拔河機產品照片">
+    </div>
+    <div class="product-info">
+      <span class="product-tag">Product</span>
+      <h2>專業級拔河機<br>Tug-of-War Machine</h2>
+      <p>本公司自主研發的野獸拔河機，結合遊玩過程拉力反饋與耐用金屬機構，適用於遊樂場、購物中心、主題樂園及電競場館等多元商業場景。</p>
+      <div class="product-specs">
+        <div class="spec-item">拉力偵測<span>高精度感測器</span></div>
+        <div class="spec-item">即時顯示<span>數位計分面板</span></div>
+        <div class="spec-item">耐用機構<span>工業級金屬結構</span></div>
+        <div class="spec-item">多人模式<span>雙隊對抗設計</span></div>
+        <div class="spec-item">認證規格<span>CE / FCC 合規</span></div>
+        <div class="spec-item">全球市場<span>11 國銷售覆蓋</span></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <div class="kpi-row">
   <div class="kpi-card">
@@ -210,6 +377,7 @@
   <div id="map-section" class="section-title"><div class="num">7</div><h2>全球目標分佈互動地圖</h2></div>
   <div class="card"><p>點擊地圖標記可查看各市場詳細資訊與年度 KPI 目標。地圖支援縮放與拖曳。</p></div>
   <div id="map"></div>
+  <div id="map-placeholder">🗺 互動地圖請見線上 HTML 版本<br><small style="color:#5d6d7e;margin-top:8px;display:block;">（PDF 版本不支援即時地圖圖磚，各市場目標請參考上方表格）</small></div>
 
   <div id="action" class="section-title"><div class="num">8</div><h2>管理建議與後續行動方案</h2></div>
   <div class="card">
@@ -318,6 +486,58 @@
     {name:'東南亞',kpi:30,lat:15.9,lng:100.9,desc:'測試型市場，以展會切入建立品牌認知（泰國）'},
     {name:'澳洲',kpi:100,lat:-25.3,lng:133.8,desc:'獨立大型市場，深耕連鎖娛樂通路'},
   ].forEach(m=>L.marker([m.lat,m.lng],{icon:mkStyle(m.kpi)}).addTo(map).bindPopup(`<b>${m.name}</b><br>年度 KPI：<b>${m.kpi} 台</b><br><small>${m.desc}</small>`,{maxWidth:220}));
+
+  /* ── PDF 匯出 ── */
+  function exportPDF(){
+    const overlay=document.getElementById('pdfOverlay');
+    overlay.classList.add('show');
+
+    // 暫時切換地圖區塊
+    const mapEl=document.getElementById('map');
+    const mapPh=document.getElementById('map-placeholder');
+    mapEl.style.display='none';
+    mapPh.style.display='block';
+
+    // 讓所有進度條寬度固定（確保 html2canvas 能捕捉）
+    document.querySelectorAll('.progress-bar').forEach(b=>{ b.style.transition='none'; b.style.width=b.dataset.w||b.style.width; });
+
+    const opt={
+      margin:[10,10,12,10],
+      filename:'拔河機銷售策略建議書.pdf',
+      image:{type:'jpeg',quality:0.97},
+      html2canvas:{scale:2,useCORS:true,logging:false,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    };
+
+    html2pdf()
+      .set(opt)
+      .from(document.body)
+      .save()
+      .then(()=>{
+        mapEl.style.display='';
+        mapPh.style.display='none';
+        map.invalidateSize();
+        overlay.classList.remove('show');
+      })
+      .catch(()=>{
+        mapEl.style.display='';
+        mapPh.style.display='none';
+        overlay.classList.remove('show');
+      });
+  }
 </script>
+
+<!-- 覆蓋遮罩 -->
+<div id="pdfOverlay">
+  <div class="pdf-spinner"></div>
+  <span>正在產生 PDF，請稍候…</span>
+</div>
+
+<!-- 浮動按鈕 -->
+<button id="pdfBtn" onclick="exportPDF()">
+  <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h5.66V9h3.84L12 2z"/></svg>
+  匯出完整 PDF
+</button>
 </body>
 </html>
